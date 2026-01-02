@@ -1,0 +1,40 @@
+name: Scraper Diario El Peruano
+
+on:
+  schedule:
+    # Ejecutar todos los días a las 11:00 UTC (6:00 AM Perú)
+    - cron: '0 11 * * *'
+  workflow_dispatch: # Permite ejecutarlo manualmente con un botón
+
+permissions:
+  contents: write # Permiso para guardar el Excel en el repo
+
+jobs:
+  scrape_and_save:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 1. Descargar el código del repositorio
+        uses: actions/checkout@v4
+
+      - name: 2. Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: 3. Instalar librerías
+        run: pip install -r requirements.txt
+
+      - name: 4. Instalar Navegadores (Playwright)
+        run: |
+          playwright install chromium
+          playwright install-deps
+
+      - name: 5. Ejecutar Scraper
+        run: python scraper.py
+
+      - name: 6. Guardar cambios (Commit y Push)
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "🤖 Nuevo reporte generado automáticamente"
+          file_pattern: "resultados/*.xlsx"
